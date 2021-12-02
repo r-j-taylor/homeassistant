@@ -1,0 +1,18 @@
+- name: all_devices
+  platform: group
+  services:
+    - service: mobile_app_ryan_s_phone
+    - service: mobile_app_isabelle_s_phone
+    - service: mobile_app_chromebook
+
+- name: ALL_X_ISABELLE
+  platform: group
+  services:
+    - service: mobile_app_ryan_s_phone
+    - service: mobile_app_chromebook
+
+- name: ALL_X_RYAN
+  platform: group
+  services:
+    - service: mobile_app_isabelle_s_phone
+    - service: mobile_app_chromebook

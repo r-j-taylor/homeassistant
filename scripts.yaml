@@ -1,0 +1,151 @@
+set_isabelle_morning_time:
+  variables:
+    nextAlarm:
+      "{{strptime((as_timestamp(states('sensor.isabelle_s_phone_next_alarm'))
+      | timestamp_local), '%Y-%m-%d %H:%M:%S').time()}}
+
+      "
+    minTime: "{{strptime('02:00', '%H:%M').time()}}
+
+      "
+    maxTime: "{{strptime('11:00', '%H:%M').time()}}
+
+      "
+  sequence:
+    - condition: template
+      value_template: "{{nextAlarm > minTime and\n  nextAlarm <= maxTime}}\n"
+    - condition: state
+      entity_id: input_boolean.isabelle_morning_time_set
+      state: "off"
+    - service: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.isabelle_morning_time
+      data:
+        time:
+          "{{strptime(((as_timestamp(states('sensor.isabelle_s_phone_next_alarm'))
+          + 1800) | timestamp_local), '%Y-%m-%d %H:%M:%S').time()}}
+
+          "
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.isabelle_morning_time_set
+  mode: single
+toggle_ryans_clear_trigger:
+  alias: Toggle Ryan's Clear Trigger
+  sequence:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.ryan_routine_clear_trigger
+    - delay:
+        hours: 0
+        minutes: 0
+        seconds: 5
+        milliseconds: 0
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.ryan_routine_clear_trigger
+  mode: single
+spotify:
+  alias: Play Jazz on Spotify
+  sequence:
+    - service: media_player.media_stop
+      target:
+        entity_id: media_player.spotify_isabelle_colton
+    - service: media_player.clear_playlist
+      target:
+        entity_id: media_player.spotify_isabelle_colton
+    - service: media_player.play_media
+      target:
+        entity_id: media_player.spotify_isabelle_colton
+      data:
+        media_content_id: https://open.spotify.com/playlist/5xddIVAtLrZKtt4YGLM1SQ?si=YcvRqaKNTxOi043Qn4LYkg
+        media_content_type: playlist
+    - service: media_player.volume_up
+      target:
+        entity_id: media_player.spotify_isabelle_colton
+  mode: single
+turn_everything_off:
+  alias: Turn Everything Off
+  sequence:
+    - service: homeassistant.turn_off
+      target:
+        entity_id:
+          - group.living_room_lights
+          - light.bedroom_lights
+          - media_player.tv
+          - switch.tasmota_plug_1
+          - switch.tasmota_plug_2
+          - switch.tasmota_plug_3
+          - switch.tasmota_plug_4
+          - switch.tasmota_plug_5
+          - switch.tasmota_plug_6
+  mode: single
+  icon: mdi:power-plug-off
+isabelle_gets_some_love:
+  alias: Isabelle Gets Some Love
+  sequence:
+    - service: persistent_notification.create
+      data:
+        message: There it goes...
+        title: You've sent some love!
+    - service: notify.mobile_app_isabelle_s_phone
+      data:
+        title: Buh-bum, buh-bum...
+        message: Love was just sent your way!
+    - condition: state
+      entity_id: person.isabelle
+      state: home
+    - service: tts.cloud_say
+      data:
+        entity_id: media_player.my_bedroom_speaker
+        message: Buh-bum, buh-bum... Me luv you long tim
+  mode: single
+ryan_gets_some_love:
+  alias: Ryan Gets Some Love
+  sequence:
+    - service: persistent_notification.create
+      data:
+        message: There it goes...
+        title: You've sent some love!
+    - service: notify.mobile_app_ryan_s_phone
+      data:
+        title: Buh-bum, buh-bum...
+        message: Love was just sent your way!
+    - condition: state
+      entity_id: person.ryan
+      state: home
+    - service: tts.cloud_say
+      data:
+        entity_id: media_player.my_bedroom_speaker
+        message: Buh-bum, buh-bum... Me luv you long tim
+  mode: single
+play_jazz_on_google_home_mini:
+  alias: Play Jazz on Google Home Mini
+  sequence:
+    - service: media_player.media_stop
+      target:
+        entity_id: media_player.my_bedroom_speaker
+    - service: media_player.clear_playlist
+      target:
+        entity_id: media_player.my_bedroom_speaker
+    - service: media_player.play_media
+      data:
+        media_content_id: https://open.spotify.com/playlist/5xddIVAtLrZKtt4YGLM1SQ?si=YcvRqaKNTxOi043Qn4LYkg
+        media_content_type: playlist
+      target:
+        entity_id: media_player.my_bedroom_speaker
+    - service: media_player.volume_up
+      target:
+        entity_id: media_player.my_bedroom_speaker
+  mode: single
+test_script:
+  alias: Test Script
+  sequence:
+    - service: light.turn_on
+      data:
+        flash: short
+        brightness_pct: 100
+        transition: 15
+      target:
+        entity_id: light.bedroom_lights
+  mode: single

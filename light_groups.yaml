@@ -1,0 +1,13 @@
+- platform: group
+  name: TV Lights
+  unique_id: tv_lights
+  entities:
+    - light.hue_play_1
+    - light.hue_play_2
+
+- platform: group
+  name: Bedroom Lights
+  unique_id: bedroom_lights
+  entities:
+    - light.tasmota_bulb_1
+    - light.tasmota_bulb_2

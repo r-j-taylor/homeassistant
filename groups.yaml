@@ -1,0 +1,22 @@
+# Device Groups
+tv_lights:
+  name: TV Lights
+  icon: mdi:lightbulb-group
+  entities:
+    - light.hue_play_1
+    - light.hue_play_2
+
+living_room_lights:
+  name: Living Room Lights
+  icon: mdi:lightbulb-group
+  entities:
+    - light.hue_play_1
+    - light.hue_play_2
+    - switch.tasmota_plug_1
+
+test_toggle_group:
+  name: Test
+  all: false
+  entities:
+    - input_boolean.dummy
+    - input_boolean.dummy_2

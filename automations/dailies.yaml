@@ -1,0 +1,67 @@
+- alias: Fill next_alarm helper
+  id: "9"
+  description: Fills the next_alarm helper with the next occurring alarm.
+  trigger:
+    - platform: state
+      entity_id: sensor.ryan_s_phone_next_alarm
+    - platform: state
+      entity_id: sensor.isabelle_s_phone_next_alarm
+  condition:
+    - condition: template
+      value_template: >
+        {{ nextAlarm is not none }}
+  action:
+    - service: input_datetime.set_datetime
+      target:
+        entity_id: input_datetime.next_alarm
+      data:
+        timestamp: "{{ nextAlarm - 1}}"
+  variables:
+    ryanTimestamp: "{{as_timestamp(states('sensor.ryan_s_phone_next_alarm'))}}"
+    izzyTimestamp: "{{as_timestamp(states('sensor.isabelle_s_phone_next_alarm'))}}"
+    nextAlarm: >
+      {% if ryanTimestamp is not none and (izzyTimestamp is none or ryanTimestamp < izzyTimestamp) %}{{ryanTimestamp}}
+      {% else %}{{izzyTimestamp}}
+      {% endif %}
+  mode: single
+
+- alias: Morning Kettle
+  id: "10"
+  description: Turn the kettle on when the first person wakes
+    up.
+  trigger:
+    - platform: time
+      at: input_datetime.next_alarm
+  condition:
+    - condition: time
+      before: "12:00"
+  action:
+    - delay:
+        minutes: 5
+    - service: switch.turn_on
+      target:
+        entity_id: switch.tasmota_plug_2
+  mode: single
+
+- alias: Weekday Boot-up
+  id: "16"
+  description: Boot certain devices on weekdays.
+  trigger:
+    - platform: time
+      at: 06:00:00
+  condition:
+    - condition: time
+      weekday:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+  action:
+    - service: switch.turn_on
+      target:
+        entity_id: switch.my_desktop
+    - service: switch.turn_on
+      target:
+        entity_id: switch.my_work_computer
+  mode: single

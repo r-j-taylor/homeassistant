@@ -1,0 +1,220 @@
+blueprint:
+  name: Send Actionable Notification
+  description: >
+    Send actionable notifications, with up to three actions, to a supported
+    device.
+
+
+    Adapted from: https://community.home-assistant.io/t/actionable-notifications-for-android/256773
+
+
+    More info on proper URIs can be found here, including how to open available
+    lovelace views and installed apps:
+    https://companion.home-assistant.io/docs/notifications/actionable-notifications/#uri-values
+
+
+    NOTE: If you define an action and a URI for a button, the URI will take precedence over
+    action.
+  domain: automation
+  input:
+    notify_device:
+      name: Device to notify
+      description:
+        Device needs to run the official Home Assistant app to receive
+        notifications
+      selector:
+        device:
+          integration: mobile_app
+    trigger_entity:
+      name: Trigger entity
+      description: Send the notification when this boolean turns on
+      selector:
+        entity:
+          domain: input_boolean
+    notification_title:
+      name: Notification title (Optional)
+      description: The title of the notification
+      default: ""
+    notification_message:
+      name: Notification message (Optional)
+      description: The message of the notification
+      default: ""
+    persistent_notification:
+      name: Create persistent notification?
+      description: Persistent notifications cannot be dimissed by swiping away
+      default: false
+      selector:
+        boolean: {}
+    sticky_notification:
+      name: Create sticky notification?
+      description: Sticky notifications are not dimissed when selected
+      default: false
+      selector:
+        boolean: {}
+    clear_trigger:
+      name: Clear trigger (Required when sticky)
+      description: >-
+        The trigger to clear the notification from the device.
+        Required when the notification is sticky, else the notification will
+        never go away.
+
+        NOTE: Must be a boolean value.
+      selector:
+        entity: {}
+      default: ""
+    separate_duplicates:
+      name: Separate duplicate notifications?
+      description: >
+        Determines whether or not duplicate notifications should overwrite
+        previous notifications, i.e. if two cameras detect motion and notify,
+        show only the latest motion notification if false, all motion
+        notifications if true.
+      default: false
+      selector:
+        boolean: {}
+    action_1_title:
+      name: First action name (Optional)
+      description: Name of the first button
+      default: ""
+    action_1_uri:
+      name: URI for action 1 (Optional)
+      description: URI for the first action
+      default: ""
+    first_action:
+      name: Action 1 (Optional)
+      description: >-
+        Action to run when the first action is clicked. Clicking on the
+        notification, instead of an action, will also perfrom this action.
+
+        Note: This is considered the default action and will also be performed
+        if the notification itself is tapped.
+      default: []
+      selector:
+        action: {}
+    action_2_title:
+      name: Second action name (Optional)
+      description: Name of the second button
+      default: ""
+    action_2_uri:
+      name: URI for action 2 (Optional)
+      description: URI for the second action
+      default: ""
+    second_action:
+      name: Action 2 (Optional)
+      description: Action to run when the second action is clicked"
+      default: []
+      selector:
+        action: {}
+    action_3_title:
+      name: Third action name (Optional)
+      description: Name of the third button
+      default: ""
+    action_3_uri:
+      name: URI for action 3 (Optional)
+      description: URI for the third action
+      default: ""
+    third_action:
+      name: Action 3 (Optional)
+      description: Action to run when the third action is clicked
+      default: []
+      selector:
+        action: {}
+mode: restart
+max_exceeded: silent
+variables:
+  notify_device: !input "notify_device"
+  trigger_entity: !input "trigger_entity"
+  notification_title: !input "notification_title"
+  notification_message: !input "notification_message"
+  persistent_notification: !input "persistent_notification"
+  action_1_title: !input "action_1_title"
+  action_1_uri: !input "action_1_uri"
+  first_action: !input "first_action"
+  action_2_title: !input "action_2_title"
+  action_2_uri: !input "action_2_uri"
+  second_action: !input "second_action"
+  action_3_title: !input "action_3_title"
+  action_3_uri: !input "action_3_uri"
+  third_action: !input "third_action"
+  sticky_notification: !input "sticky_notification"
+  clear_trigger: !input "clear_trigger"
+  separate_duplicates: !input "separate_duplicates"
+trigger:
+  platform: state
+  entity_id: !input "trigger_entity"
+  from: "off"
+  to: "on"
+action:
+  - service: input_boolean.turn_off
+    entity_id: !input "trigger_entity"
+  - domain: mobile_app
+    type: notify
+    device_id: !input "notify_device"
+    title: "{{ notification_title }}"
+    message: "{{ notification_message }}"
+    data:
+      tag: >
+        {% if separate_duplicates %}{{ notification_title ~ context.id }}
+        {% else %}{{ "HASSActionable" ~ notification_title }}
+        {% endif %}
+      persistent: "{{ persistent_notification }}"
+      sticky: "{{ sticky_notification }}"
+      clickAction: !input "first_action"
+      actions: >
+        {% set titles = [action_1_title, action_2_title, action_3_title] %}
+        {% set uris = [action_1_uri, action_2_uri, action_3_uri] %}
+        {% set actions = namespace(data = []) %}
+        {% for title in titles %}
+          {% if title|length %}
+            {% set uri = uris[loop.index - 1] %}
+            {% set action_name = loop.index|string ~ context.id %}
+            {% set action = {
+              "action": "URI" if uri|length else action_name,
+              "title": title,
+              "uri": uri
+            }%}
+            {% set actions.data = actions.data + [action] %}
+          {% endif %}
+        {% endfor %}
+        {{ actions.data }}
+      channel: "HASSActionableNotification"
+      importance: high
+  - repeat:
+      sequence:
+        - wait_for_trigger:
+            platform: event
+            event_type: mobile_app_notification_action
+            event_data:
+              tag: >
+                {% if separate_duplicates %}{{ notification_title ~ context.id }}
+                {% else %}{{ "HASSActionable" ~ notification_title }}
+                {% endif %}
+        - choose:
+            - conditions: >
+                {{ wait.trigger.event.data.action == ("1" ~ context.id) }}
+              sequence: !input "first_action"
+            - conditions: >
+                {{ wait.trigger.event.data.action == ("2" ~ context.id) }}
+              sequence: !input "second_action"
+            - conditions: >
+                {{ wait.trigger.event.data.action == ("3" ~ context.id) }}
+              sequence: !input "third_action"
+      until:
+        - condition: not
+          conditions:
+            - condition: template
+              value_template: >
+                {{
+                  clear_trigger is not none
+                  and sticky_notification
+                  and is_state(clear_trigger, 'off')
+                }}
+  - domain: mobile_app
+    type: notify
+    device_id: !input "notify_device"
+    message: "clear_notification"
+    data:
+      tag: >
+        {% if separate_duplicates %}{{ notification_title ~ context.id }}
+        {% else %}{{ "HASSActionable" ~ notification_title }}
+        {% endif %}

@@ -1,0 +1,55 @@
+blueprint:
+  name: Shelly Button1 Actions
+  description: Set actions for Shelly Button1 presses
+  domain: automation
+  input:
+    button:
+      name: Shelly Button1 Switch
+      description: Button to use
+      selector:
+        device:
+          model: "Shelly Button1"
+    button_single:
+      name: Short click
+      default: []
+      selector:
+        action: {}
+    button_double:
+      name: Double click
+      default: []
+      selector:
+        action: {}
+    button_triple:
+      name: Triple click
+      default: []
+      selector:
+        action: {}
+    button_long:
+      name: Long click
+      default: []
+      selector:
+        action: {}
+mode: restart
+max_exceeded: silent
+trigger:
+  - platform: event
+    event_type: shelly.click
+    event_data:
+      device_id: !input button
+      channel: 1
+action:
+  - variables:
+      clickType: "{{ trigger.event.data.click_type }}"
+  - choose:
+      - conditions:
+          - '{{ clickType == "single" }}'
+        sequence: !input "button_single"
+      - conditions:
+          - '{{ clickType == "double" }}'
+        sequence: !input "button_double"
+      - conditions:
+          - '{{ clickType == "triple" }}'
+        sequence: !input "button_triple"
+      - conditions:
+          - '{{ clickType == "long" }}'
+        sequence: !input "button_long"

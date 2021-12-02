@@ -1,0 +1,415 @@
+- id: '1630794292051'
+  alias: TV State Change Actions
+  description: ''
+  trigger:
+  - platform: state
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 30
+      milliseconds: 0
+    entity_id: media_player.tv
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''on'' }}'
+      sequence:
+      - service: homeassistant.turn_on
+        target:
+          entity_id: light.tv_lights
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''off'' }}'
+      sequence:
+      - service: homeassistant.turn_on
+        target:
+          entity_id:
+          - switch.adguard_protection
+      - service: homeassistant.turn_off
+        target:
+          entity_id:
+          - light.tv_lights
+    default: []
+  mode: single
+- id: '1631205901892'
+  alias: Someone Arrived Home
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - person.isabelle
+    - person.ryan
+    to: home
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 15
+      milliseconds: 0
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    target:
+      entity_id:
+      - input_boolean.someone_is_home
+      - input_boolean.someone_arrived_home
+  - service: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.someone_arrived_home
+  - condition: and
+    conditions:
+    - condition: state
+      entity_id: person.isabelle
+      state: home
+    - condition: state
+      entity_id: person.ryan
+      state: home
+  - service: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.someone_is_away
+  mode: queued
+  max: 10
+- id: '1631205901893'
+  alias: Someone Left Home
+  description: ''
+  trigger:
+  - platform: state
+    entity_id:
+    - person.isabelle
+    - person.ryan
+    from: home
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+  condition: []
+  action:
+  - service: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.someone_is_away
+  - condition: template
+    value_template: '{{states(''person.isabelle'') != ''home'' and states(''person.ryan'')
+      != ''home''}}
+
+      '
+  - service: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.someone_is_home
+  mode: queued
+  max: 10
+- id: '1635270155930'
+  alias: Perform Actions When Someone Arrives Home
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: input_boolean.someone_arrived_home
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - service: switch.turn_on
+    target:
+      entity_id:
+      - switch.tasmota_plug_1
+      - switch.tasmota_plug_4
+  mode: single
+- id: '1635962666659'
+  alias: Shelly Button 1
+  description: ''
+  use_blueprint:
+    path: custom/shelly-button1.yaml
+    input:
+      button: 55083f97ef6fb5bfe974b4cf8dd55d2e
+      button_single:
+      - service: light.toggle
+        target:
+          entity_id: light.bedroom_lights
+        data:
+          brightness_pct: 100
+          color_temp: 500
+      button_double:
+      - service: light.turn_on
+        data:
+          brightness_pct: 25
+          color_temp: 500
+        target:
+          entity_id: light.bedroom_lights
+      button_triple: []
+      button_long:
+      - service: script.turn_everything_off
+- id: '1635965302617'
+  alias: Shelly Button 2
+  description: ''
+  use_blueprint:
+    path: custom/shelly-button1.yaml
+    input:
+      button: 17de100b6532817be7490fdbfbf2008c
+      button_single:
+      - service: switch.toggle
+        target:
+          entity_id:
+          - switch.tasmota_plug_1
+      button_double:
+      - service: light.toggle
+        target:
+          entity_id: light.tv_lights
+        data:
+          brightness_pct: 100
+      button_triple:
+      - service: homeassistant.toggle
+        target:
+          entity_id: group.living_room_lights
+- id: '1635965428492'
+  alias: Perform Actions When Everybody Leaves Home
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: input_boolean.someone_is_home
+    to: 'off'
+    from: 'on'
+  condition: []
+  action:
+  - service: script.turn_everything_off
+  mode: single
+- id: '1636826768277'
+  alias: Send TTS Text
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: input_boolean.send_tts
+    from: 'off'
+    to: 'on'
+  condition: []
+  action:
+  - service: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.send_tts
+  - service: tts.cloud_say
+    data:
+      entity_id: media_player.my_bedroom_speaker
+      message: '{{ states(''input_text.tts_text'') }}'
+  - service: input_text.set_value
+    data:
+      value: ''
+    target:
+      entity_id: input_text.tts_text
+  mode: single
+- id: '1637096808192'
+  alias: Kettle Off After Use
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: switch.tasmota_plug_2
+    from: 'off'
+    to: 'on'
+    for:
+      hours: 0
+      minutes: 10
+      seconds: 0
+      milliseconds: 0
+  - platform: state
+    entity_id: sensor.tasmota_plug_2_energy_factor
+    to: '0.0'
+    for:
+      hours: 0
+      minutes: 5
+      seconds: 0
+      milliseconds: 0
+  condition:
+  - condition: state
+    entity_id: sensor.tasmota_plug_2_energy_factor
+    state: '0.0'
+  action:
+  - service: switch.turn_off
+    target:
+      entity_id: switch.tasmota_plug_2
+  mode: single
+- id: '1637097220475'
+  alias: Low Battery Notification
+  description: ''
+  trigger:
+  - platform: numeric_state
+    entity_id: sensor.shelly_button_1_battery
+    below: '20'
+  - platform: numeric_state
+    entity_id: sensor.shelly_button_2_battery
+    below: '20'
+  condition: []
+  action:
+  - device_id: 053446998b2a4f942d38f944439ac97c
+    domain: mobile_app
+    type: notify
+    title: '{{ state_attr(trigger.entity_id, ''friendly_name'') }} Battery Low'
+    message: Plug it in!
+  mode: single
+- id: '1637108008113'
+  alias: Perform Actions on Desktop State Change
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: switch.my_desktop
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 0
+      milliseconds: 0
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''on'' }}'
+      sequence:
+      - service: timer.start
+        data:
+          duration: 01:00:00
+        target:
+          entity_id: timer.stand_up
+      - service: homeassistant.turn_on
+        target:
+          entity_id: switch.tasmota_plug_3
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.to_state.state == ''off'' }}'
+      - condition: state
+        entity_id: switch.my_desktop
+        state: 'off'
+      sequence:
+      - service: timer.cancel
+        target:
+          entity_id: timer.stand_up
+      - service: homeassistant.turn_off
+        target:
+          entity_id: switch.tasmota_plug_3
+    default: []
+  mode: single
+- id: '1637108257333'
+  alias: Listen for "Stand Up" Timer Finish
+  description: ''
+  trigger:
+  - platform: event
+    event_type: timer.finished
+    event_data:
+      entity_id: timer.stand_up
+  condition:
+  - condition: time
+    after: 06:00:00
+    before: '22:00:00'
+  - condition: state
+    entity_id: person.ryan
+    state: home
+  action:
+  - device_id: 053446998b2a4f942d38f944439ac97c
+    domain: mobile_app
+    type: notify
+    title: Stand Up!
+    message: You've been on your computer for an hour.
+  - service: tts.cloud_say
+    data:
+      entity_id: media_player.my_bedroom_speaker
+      message: Ryan! Stand Up! You've been on your computer for an hour.
+  - choose:
+    - conditions:
+      - condition: state
+        entity_id:
+        - switch.my_desktop
+        - switch.my_work_computer
+        state: 'on'
+      sequence:
+      - service: timer.start
+        data:
+          duration: 01:00:00
+        target:
+          entity_id: timer.stand_up
+    default: []
+  mode: single
+- id: '1637179268891'
+  alias: Test Automation
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: input_boolean.dummy
+    to: 'on'
+  condition: []
+  action:
+  - service: timer.start
+    data: {}
+    target:
+      entity_id: timer.test
+  mode: single
+- id: '1637698835569'
+  alias: Toggle AdGuard when Hulu is Used
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: media_player.tv
+    attribute: source
+  condition: []
+  action:
+  - service: 'switch.turn_{{ "off" if trigger.to_state.attributes.source == "Hulu"
+      else "on" }}
+
+      '
+    target:
+      entity_id: switch.adguard_protection
+  mode: single
+- id: '1638113019527'
+  alias: Light Off when Computer Off
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: switch.my_desktop
+  condition: []
+  action:
+  - service: 'switch.turn_{{ trigger.to_state.state }}
+
+      '
+    target:
+      entity_id: switch.tasmota_plug_3
+  mode: single
+- id: '1638199018058'
+  alias: Tree Light Controller
+  description: ''
+  trigger:
+  - platform: time
+    at: 06:00:00
+    id: morning
+  - platform: time
+    at: '22:00:00'
+    id: night
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.id == ''morning'' }}'
+      sequence:
+      - service: switch.turn_on
+        target:
+          entity_id: switch.tasmota_plug_4
+    - conditions:
+      - condition: template
+        value_template: '{{ trigger.id == ''night'' }}'
+      sequence:
+      - service: switch.turn_off
+        target:
+          entity_id: switch.tasmota_plug_4
+    default: []
+  mode: single
+- id: '1638236862457'
+  alias: Samba Backup Alerts
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: sensor.samba_backup
+    to: FAILED
+  condition: []
+  action:
+  - device_id: 053446998b2a4f942d38f944439ac97c
+    domain: mobile_app
+    type: notify
+    message: The backup was unsuccessful!
+    title: Backup Failed
+  mode: single

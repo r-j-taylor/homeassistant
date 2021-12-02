@@ -1,0 +1,9 @@
+- platform: wake_on_lan
+  mac: !secret desktop
+  host: "192.168.88.235"
+  name: "My Desktop"
+
+- platform: wake_on_lan
+  mac: !secret work
+  host: "192.168.88.231"
+  name: "My Work Computer"

@@ -1,0 +1,11 @@
+- trigger:
+    - platform: time_pattern
+      minutes: 0
+  sensor:
+    - name: Grid Consumption
+      device_class: energy
+      state_class: total_increasing
+      state: >-
+        {{ states.sensor | selectattr('attributes.state_class','eq','total_increasing') | selectattr('attributes.unit_of_measurement','eq','kWh') | map(attribute='state') | map('float', 0) | sum }}
+      unit_of_measurement: kWh
+      icon: mdi:transmission-tower-export

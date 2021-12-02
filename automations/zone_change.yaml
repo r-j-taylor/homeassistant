@@ -1,0 +1,37 @@
+- alias: Zone Change Notification
+  id: "15"
+  description: Sends out a notification when someone changes zones.
+  trigger:
+    - platform: state
+      entity_id:
+        - person.ryan
+        - person.isabelle
+      for:
+        hours: 0
+        minutes: 0
+        seconds: 15
+        milliseconds: 0
+  variables:
+    fromState: >
+      {{ trigger.from_state.state }}
+    toState: >
+      {{ trigger.to_state.state }}
+    personName: >
+      {{ state_attr(trigger.entity_id, 'friendly_name') }}
+  condition:
+    - condition: template
+      value_template: >
+        {{toState is not none and
+          fromState is not none and
+          toState != fromState}}
+  action:
+    - service: >
+        notify.ALL_X_{{ personName.upper() }}
+      data:
+        message: >
+          {{ personName }} has
+          {% if fromState != 'not_home' %}left {{ fromState }}{% endif %}
+          {% if fromState != 'not_home' and toState != 'not_home' %}and{% endif %}
+          {% if toState != 'not_home' %}entered {{toState}}{% endif %}
+        title: "{{personName}} Location Update"
+  mode: single

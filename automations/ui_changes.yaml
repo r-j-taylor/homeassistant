@@ -1,0 +1,25 @@
+- alias: Daytime Theme Change
+  id: "13"
+  description: ""
+  trigger:
+    - platform: sun
+      event: sunrise
+  condition: []
+  action:
+    - service: frontend.set_theme
+      data:
+        name: waves-light
+  mode: single
+
+- alias: Nighttime Theme Change
+  id: "14"
+  description: ""
+  trigger:
+    - platform: sun
+      event: sunset
+  condition: []
+  action:
+    - service: frontend.set_theme
+      data:
+        name: waves-dark
+  mode: single

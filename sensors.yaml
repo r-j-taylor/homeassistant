@@ -1,0 +1,23 @@
+- platform: time_date
+  display_options:
+    - "time"
+    - "date"
+    - "date_time"
+    - "date_time_utc"
+    - "date_time_iso"
+    - "time_date"
+    - "time_utc"
+    - "beat"
+
+- platform: template
+  sensors:
+    next_sunrise_time:
+      friendly_name: "Next Sunrise"
+      value_template: >
+        {{ as_timestamp(state_attr('sun.sun', 'next_rising')) | timestamp_custom('%-I:%M %p') }}
+      icon_template: mdi:weather-sunset-up
+    next_sunset_time:
+      friendly_name: "Next Sunset"
+      value_template: >
+        {{ as_timestamp(states.sun.sun.attributes.next_setting) | timestamp_custom('%-I:%M %p') }}
+      icon_template: mdi:weather-sunset-down
