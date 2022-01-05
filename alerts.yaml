@@ -1,0 +1,9 @@
+battery_low:
+  name: A Battery is Low
+  entity_id: binary_sensor.any_batteries_low
+  state: "on"
+  repeat: 180
+  title: A Battery is Low
+  message: The batteries for {{ state_attr('binary_sensor.any_batteries_low', 'low_devices')}} are low!
+  notifiers:
+    - mobile_app_ryan_s_phone

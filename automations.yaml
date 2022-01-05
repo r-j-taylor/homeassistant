@@ -214,7 +214,7 @@
     to: '0.0'
     for:
       hours: 0
-      minutes: 5
+      minutes: 0
       seconds: 0
       milliseconds: 0
   condition:
@@ -300,6 +300,11 @@
   - condition: state
     entity_id: person.ryan
     state: home
+  - condition: not
+    conditions:
+    - condition: state
+      entity_id: person.isabelle
+      state: home
   action:
   - device_id: 053446998b2a4f942d38f944439ac97c
     domain: mobile_app
@@ -334,10 +339,30 @@
     to: 'on'
   condition: []
   action:
-  - service: timer.start
-    data: {}
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - service: input_boolean.turn_off
     target:
-      entity_id: timer.test
+      entity_id: input_boolean.dummy
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - service: input_boolean.turn_on
+    target:
+      entity_id: input_boolean.dummy
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  - service: input_boolean.turn_off
+    target:
+      entity_id: input_boolean.dummy
   mode: single
 - id: '1637698835569'
   alias: Toggle AdGuard when Hulu is Used
@@ -363,11 +388,13 @@
     entity_id: switch.my_desktop
   condition: []
   action:
-  - service: 'switch.turn_{{ trigger.to_state.state }}
+  - service: 'homeassistant.turn_{{ trigger.to_state.state }}
 
       '
     target:
-      entity_id: switch.tasmota_plug_3
+      entity_id:
+      - switch.tasmota_plug_3
+      - light.office_lights
   mode: single
 - id: '1638199018058'
   alias: Tree Light Controller
@@ -412,4 +439,100 @@
     type: notify
     message: The backup was unsuccessful!
     title: Backup Failed
+  mode: single
+- id: '1640750159161'
+  alias: ESP WROVER Buttons
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.red_button
+    to: 'on'
+    id: 'off'
+  - platform: state
+    entity_id: binary_sensor.green_button
+    to: 'on'
+    id: 'on'
+  condition: []
+  action:
+  - choose:
+    - conditions:
+      - condition: trigger
+        id: 'on'
+      sequence:
+      - service: light.turn_on
+        target:
+          entity_id: light.office_lights
+        data:
+          kelvin: 3000
+          brightness_pct: '{{ ((states(''sensor.potentiometer'') | float(0) - 0.08)
+            / 3.08 * 100) | int(100) }}'
+    - conditions:
+      - condition: trigger
+        id: 'off'
+      sequence:
+      - service: light.turn_off
+        target:
+          entity_id: light.office_lights
+        data: {}
+    default: []
+  mode: single
+- id: '1640816868797'
+  alias: Office Dimmer
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: sensor.potentiometer
+  condition:
+  - condition: state
+    entity_id: light.office_lights
+    state: 'on'
+  action:
+  - service: light.turn_on
+    data:
+      brightness_pct: '{{ ((states("sensor.potentiometer") | float(0) - 0.08) / 3.08
+        * 100) | int(100) }}'
+      kelvin: 3000
+    target:
+      entity_id: light.office_lights
+  mode: single
+- id: '1640818112697'
+  alias: Mario
+  description: ''
+  trigger:
+  - platform: state
+    entity_id: binary_sensor.red_button
+    to: 'on'
+    from: 'off'
+    for:
+      hours: 0
+      minutes: 0
+      seconds: 5
+      milliseconds: 0
+  condition: []
+  action:
+  - service: light.turn_on
+    target:
+      entity_id: light.office_lights
+    data:
+      brightness_pct: 100
+      effect: Random
+      color_name: red
+  - service: esphome.test_play_rtttl
+    data:
+      song_str: '"mario:d=4,o=5,b=100:16e6,16e6,32p,8e6,16c6,8e6,8g6,8p,8g,8p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,16p,8c6,16p,8g,16p,8e,16p,8a,8b,16a#,8a,16g.,16e6,16g6,8a6,16f6,8g6,8e6,16c6,16d6,8b,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16c7,16p,16c7,16c7,p,16g6,16f#6,16f6,16d#6,16p,16e6,16p,16g#,16a,16c6,16p,16a,16c6,16d6,8p,16d#6,8p,16d6,8p,16c6"'
+  - delay:
+      hours: 0
+      minutes: 0
+      seconds: 23
+      milliseconds: 0
+  - service: light.turn_on
+    target:
+      entity_id: light.office_lights
+    data:
+      effect: None
+  - service: light.turn_off
+    target:
+      entity_id: light.office_lights
+    data:
+      transition: 1
   mode: single

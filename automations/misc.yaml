@@ -6,7 +6,12 @@
       entity_id: sensor.tasmota_plug_2_energy_factor
       from: "1.0"
       to: "0.0"
-  condition: []
+  condition:
+    - condition: not
+      conditions:
+        - condition: state
+          entity_id: person.isabelle
+          state: "home"
   variables:
     randomNumber: >
       {{ range(8) | random }}
