@@ -254,7 +254,6 @@
       hours: 0
       minutes: 0
       seconds: 0
-      milliseconds: 0
   condition: []
   action:
   - choose:
@@ -262,6 +261,9 @@
       - condition: template
         value_template: '{{ trigger.to_state.state == ''on'' }}'
       sequence:
+      - condition: time
+        after: 05:55:00
+        before: '22:00:00'
       - service: timer.start
         data:
           duration: 01:00:00
@@ -269,7 +271,9 @@
           entity_id: timer.stand_up
       - service: homeassistant.turn_on
         target:
-          entity_id: switch.tasmota_plug_3
+          entity_id:
+          - switch.tasmota_plug_3
+          - light.office_lights
     - conditions:
       - condition: template
         value_template: '{{ trigger.to_state.state == ''off'' }}'
@@ -282,7 +286,9 @@
           entity_id: timer.stand_up
       - service: homeassistant.turn_off
         target:
-          entity_id: switch.tasmota_plug_3
+          entity_id:
+          - switch.tasmota_plug_3
+          - light.office_lights
     default: []
   mode: single
 - id: '1637108257333'
@@ -300,21 +306,25 @@
   - condition: state
     entity_id: person.ryan
     state: home
-  - condition: not
-    conditions:
-    - condition: state
-      entity_id: person.isabelle
-      state: home
   action:
   - device_id: 053446998b2a4f942d38f944439ac97c
     domain: mobile_app
     type: notify
     title: Stand Up!
     message: You've been on your computer for an hour.
-  - service: tts.cloud_say
-    data:
-      entity_id: media_player.my_bedroom_speaker
-      message: Ryan! Stand Up! You've been on your computer for an hour.
+  - choose:
+    - conditions:
+      - condition: not
+        conditions:
+        - condition: state
+          entity_id: person.isabelle
+          state: home
+      sequence:
+      - service: tts.cloud_say
+        data:
+          entity_id: media_player.my_bedroom_speaker
+          message: Ryan! Stand Up! You've been on your computer for an hour.
+    default: []
   - choose:
     - conditions:
       - condition: state
@@ -536,3 +546,25 @@
     data:
       transition: 1
   mode: single
+- id: '1642709240729'
+  alias: Shelly 3
+  description: ''
+  use_blueprint:
+    path: custom/shelly-button1.yaml
+    input:
+      button: 3f0037350663df8bf0cbefa8fc48b45c
+      button_single:
+      - service: light.toggle
+        target:
+          entity_id: light.tasmota_bulb_1_2
+- id: '1645026968224'
+  alias: Shelly Button 4
+  description: Automation for the Shelly1 in the Office.
+  use_blueprint:
+    path: custom/shelly-button1.yaml
+    input:
+      button: 3d4df902588c590801393deb506339c0
+      button_single:
+      - service: light.toggle
+        target:
+          entity_id: light.office_lights

@@ -1,0 +1,30 @@
+esphome:
+  name: bluetooth-test
+
+esp32:
+  board: esp32dev
+  framework:
+    type: arduino
+
+# Enable logging
+logger:
+  level: VERY_VERBOSE
+
+# Enable Home Assistant API
+api:
+
+ota:
+  password: "f7cf6e65587f70fe01ad63fe8abcc186"
+
+wifi:
+  ssid: !secret wifi_ssid
+  password: !secret wifi_password
+
+  # Enable fallback hotspot (captive portal) in case wifi connection fails
+  ap:
+    ssid: "Bluetooth-Test Fallback Hotspot"
+    password: "shOcyBVXKvyy"
+
+captive_portal:
+
+esp32_ble_tracker:

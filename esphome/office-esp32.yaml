@@ -63,7 +63,9 @@ sensor:
     pin: 33
     name: "Potentiometer"
     attenuation: auto
-    update_interval: 0.5s
+    update_interval: 0s
+    filters:
+      - delta: 0.25
 
 # output:
 #   - platform: ledc

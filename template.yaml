@@ -15,4 +15,4 @@
       state: "{{ states.sensor | selectattr('entity_id', 'search', 'shelly') | selectattr('state', 'lt', '20') | list | count }}"
       device_class: battery
       attributes:
-        low_devices: "{{ states.sensor | selectattr('entity_id', 'search', 'shelly') | selectattr('state', 'lt', '80') | join(' and ', attribute='attributes.friendly_name') }}"
+        low_devices: "{{ states.sensor | selectattr('entity_id', 'search', 'shelly') | selectattr('state', 'lt', '20') | join(' and ', attribute='attributes.friendly_name') }}"
