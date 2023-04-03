@@ -43,42 +43,6 @@ toggle_ryans_clear_trigger:
     target:
       entity_id: input_boolean.ryan_routine_clear_trigger
   mode: single
-spotify:
-  alias: Play Jazz on Spotify
-  sequence:
-  - service: media_player.media_stop
-    target:
-      entity_id: media_player.spotify_isabelle_colton
-  - service: media_player.clear_playlist
-    target:
-      entity_id: media_player.spotify_isabelle_colton
-  - service: media_player.play_media
-    target:
-      entity_id: media_player.spotify_isabelle_colton
-    data:
-      media_content_id: https://open.spotify.com/playlist/5xddIVAtLrZKtt4YGLM1SQ?si=YcvRqaKNTxOi043Qn4LYkg
-      media_content_type: playlist
-  - service: media_player.volume_up
-    target:
-      entity_id: media_player.spotify_isabelle_colton
-  mode: single
-turn_everything_off:
-  alias: Turn Everything Off
-  sequence:
-  - service: homeassistant.turn_off
-    target:
-      entity_id:
-      - group.living_room_lights
-      - light.bedroom_lights
-      - media_player.tv
-      - switch.tasmota_plug_1
-      - switch.tasmota_plug_2
-      - switch.tasmota_plug_3
-      - switch.tasmota_plug_4
-      - switch.tasmota_plug_5
-      - switch.tasmota_plug_6
-  mode: single
-  icon: mdi:power-plug-off
 isabelle_gets_some_love:
   alias: Isabelle Gets Some Love
   sequence:
@@ -109,33 +73,14 @@ ryan_gets_some_love:
       entity_id: media_player.my_bedroom_speaker
       message: Buh-bum, buh-bum... Me luv you long tim
   mode: single
-play_jazz_on_google_home_mini:
-  alias: Play Jazz on Google Home Mini
+set_pixel_volume_to_max:
+  alias: Set Pixel volume to max
   sequence:
-  - service: media_player.media_stop
-    target:
-      entity_id: media_player.my_bedroom_speaker
-  - service: media_player.clear_playlist
-    target:
-      entity_id: media_player.my_bedroom_speaker
-  - service: media_player.play_media
+  - service: notify.mobile_app_pixel_6_pro
     data:
-      media_content_id: https://open.spotify.com/playlist/5xddIVAtLrZKtt4YGLM1SQ?si=YcvRqaKNTxOi043Qn4LYkg
-      media_content_type: playlist
-    target:
-      entity_id: media_player.my_bedroom_speaker
-  - service: media_player.volume_up
-    target:
-      entity_id: media_player.my_bedroom_speaker
+      message: command_volume_level
+      data:
+        media_stream: ring_stream
+        command: '100'
   mode: single
-test_script:
-  alias: Test Script
-  sequence:
-  - service: light.turn_on
-    data:
-      flash: short
-      brightness_pct: 100
-      transition: 15
-    target:
-      entity_id: light.bedroom_lights
-  mode: single
+  icon: mdi:volume-high

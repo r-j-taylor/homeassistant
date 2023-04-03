@@ -16,3 +16,24 @@
   services:
     - service: mobile_app_isabelle_s_phone
     - service: mobile_app_chromebook
+
+- name: signal_note_to_self
+  platform: signal_messenger
+  url: !secret signal_listener_url
+  number: !secret ryan_number
+  recipients:
+    - !secret ryan_number
+
+- name: signal_isabelle
+  platform: signal_messenger
+  url: !secret signal_listener_url
+  number: !secret ryan_number
+  recipients:
+    - !secret izzy_number
+
+- name: signal_brkk
+  platform: signal_messenger
+  url: !secret signal_listener_url
+  number: !secret ryan_number
+  recipients:
+    - !secret signal_group_brkk

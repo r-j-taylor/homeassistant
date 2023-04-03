@@ -6,22 +6,18 @@
     - light.hue_play_2
 
 - platform: group
+  name: Living Room Lights
+  unique_id: living_room_lights
+  entities:
+    - light.hue_play_1
+    - light.hue_play_2
+    - light.tasmota_bulb_5
+
+- platform: group
   name: Bedroom Lights
   unique_id: bedroom_lights
   entities:
     - light.tasmota_bulb_1
     - light.tasmota_bulb_2
-
-- platform: group
-  name: Office Lights
-  unique_id: office_lights
-  entities:
-    - light.office_light_1
-    - light.office_light_2
-
-- platform: group
-  name: Hallway Lights
-  unique_id: hallway_lights
-  entities:
-    - light.tasmota_bulb_6
-    - light.tasmota_bulb_7
+    - light.tasmota_bulb_3
+    - light.tasmota_bulb_4

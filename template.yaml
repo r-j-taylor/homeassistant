@@ -16,3 +16,69 @@
       device_class: battery
       attributes:
         low_devices: "{{ states.sensor | selectattr('entity_id', 'search', 'shelly') | selectattr('state', 'lt', '20') | join(' and ', attribute='attributes.friendly_name') }}"
+
+- sensor:
+    - unique_id: "izzy_act_1"
+      name: "Isabelle's Current Activity"
+      state: >-
+        {% if states("calendar.isabelle_general") == "on" %}
+          in {{ state_attr("calendar.isabelle_general", "message") }} until {{ state_attr('calendar.isabelle_general', 'end_time').split(' ')[1][:-3] }}
+        {% elif states("person.isabelle") | lower not in ['unknown', 'home', 'not_home'] %}
+          at {{ states("person.isabelle") }}
+        {% elif states("person.isabelle") | lower == 'home' %}
+          free
+        {% elif states("sensor.sm_g973u1_detected_activity") == 'in_vehicle' %}
+          in a vehicle
+        {% elif states("sensor.sm_g973u1_detected_activity") == 'on_bicycle' %}
+          biking
+        {% elif states("sensor.sm_g973u1_detected_activity") == 'walking' %}
+          walking
+        {% elif states("sensor.sm_g973u1_detected_activity") == 'running' %}
+          running
+        {% elif states("sensor.sm_g973u1_detected_activity") == 'on_foot' %}
+          out and about on foot not walking or running I guess?
+        {% elif states("person.isabelle") == 'not_home' %}
+          out and about
+        {% else %}
+          unknown
+        {% endif %}
+      icon: >-
+        {% if states("calendar.isabelle_general") == "on" %}
+          mdi:calendar-alert
+        {% else %}
+          mdi:calendar-blank
+        {% endif %}
+
+- sensor:
+    - unique_id: "ryan_act_1"
+      name: "Ryan's Current Activity"
+      state: >-
+        {% if states("calendar.ryan_lyft") == "on" %}
+          in a meeting until {{ state_attr('calendar.ryan_lyft', 'end_time').split(' ')[1][:-3] }}
+        {% elif states("calendar.ryan_general") == "on" %}
+          in {{ state_attr("calendar.ryan_general", "message") }}  until {{ state_attr('calendar.ryan_lyft', 'end_time').split(' ')[1][:-3] }}
+        {% elif states("person.ryan") | lower not in ['unknown', 'home', 'not_home'] %}
+          at {{ states("person.ryan") }}
+        {% elif states("person.ryan") | lower == 'home' %}
+          free
+        {% elif states("sensor.pixel_6_pro_detected_activity") == 'in_vehicle' %}
+          in a vehicle
+        {% elif states("sensor.pixel_6_pro_detected_activity") == 'on_bicycle' %}
+          biking
+        {% elif states("sensor.pixel_6_pro_detected_activity") == 'walking' %}
+          walking
+        {% elif states("sensor.pixel_6_pro_detected_activity") == 'running' %}
+          running
+        {% elif states("sensor.pixel_6_pro_detected_activity") == 'on_foot' %}
+          out and about on foot not walking or running I guess?
+        {% elif states("person.ryan") == 'not_home' %}
+          out and about
+        {% else %}
+          unknown
+        {% endif %}
+      icon: >-
+        {% if states("calendar.isabelle_general") == "on" %}
+          mdi:calendar-alert
+        {% else %}
+          mdi:calendar-blank
+        {% endif %}

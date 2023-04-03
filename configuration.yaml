@@ -1,22 +1,30 @@
 # Configure a default setup of Home Assistant (frontend, api, etc)
 default_config:
-homeassistant:
-  customize: !include customize.yaml
 frontend:
   themes: !include_dir_merge_named themes
   extra_module_url:
     - /local/community/lovelace-card-mod/card-mod.js
 
 # System
+# Example configuration.yaml entry
 logger:
   default: info
 recorder:
   db_url: !secret db_url
-  purge_keep_days: 3
+  purge_keep_days: 7
   commit_interval: 60
-  include:
+  exclude:
     domains:
-      - person
+      - automation
+      - updater
+    entity_globs:
+      - sensor.weather_*
+    entities:
+      - sun.sun
+      - sensor.last_boot
+      - sensor.date
+    event_types:
+      - call_service
 
 # Text to speech
 tts:
@@ -34,29 +42,17 @@ samsungtv_smart:
     app_list: '{"Amazon Music": "S9nU6P0m8Q.APM", "Disney Plus": "3201901017640/MCmYXNxgcu.DisneyPlus", "Hulu": "LBUAQX1exg.Hulu", "Netflix": "3201907018807/org.tizen.netflix-app", "Prime Video": "3201512006785/org.tizen.ignition", "Spotify": "3201606009684"}'
 
 # Custom Components
-panel_custom:
-  - name: panel-redirect
-    # url_path needs to be unique for each panel_custom config
-    url_path: server-controls-redirect
-    sidebar_title: Server Controls
-    sidebar_icon: mdi:server
-    module_url: /local/community/panel-redirect/panel-redirect.js
-    config:
-      # Where you want to redirect to
-      target: /config/server_control
 pyscript:
   allow_all_imports: true
   hass_is_global: true
 
 # Config Separation
-group: !include groups.yaml
 automation manual: !include_dir_merge_list automations/
 automation ui: !include automations.yaml
-script: !include scripts.yaml
-scene: !include scenes.yaml
-notify: !include notify.yaml
+group: !include groups.yaml
 light: !include light_groups.yaml
+notify: !include notify.yaml
+script: !include scripts.yaml
 sensor: !include sensors.yaml
-binary_sensor: !include binary_sensors.yaml
 switch: !include switches.yaml
 template: !include template.yaml
